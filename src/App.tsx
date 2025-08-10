@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { Dashboard } from './components/Dashboard';
 import { DeveloperList } from './components/DeveloperList';
@@ -7,6 +8,18 @@ import { TaskManagement } from './components/TaskManagement';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
+
+  // Listen for navigation events
+  useEffect(() => {
+    const handleNavigateToTasks = () => {
+      setCurrentView('tasks');
+    };
+
+    window.addEventListener('navigateToTasks', handleNavigateToTasks);
+    return () => {
+      window.removeEventListener('navigateToTasks', handleNavigateToTasks);
+    };
+  }, []);
 
   const renderCurrentView = () => {
     switch (currentView) {
@@ -24,9 +37,9 @@ function App() {
   };
 
   return (
-    <Layout currentView={currentView} onViewChange={setCurrentView}>
-      {renderCurrentView()}
-    </Layout>
+      <Layout currentView={currentView} onViewChange={setCurrentView}>
+        {renderCurrentView()}
+      </Layout>
   );
 }
 
