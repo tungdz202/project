@@ -57,6 +57,15 @@ function ProjectDetailModal({ project, onClose, onEdit }: {
     }
   };
 
+  const handleAssignTask = () => {
+    // Navigate to task management with pre-filled assignee
+    onClose();
+    // This would typically use a router to navigate
+    window.dispatchEvent(new CustomEvent('navigateToTasks', {
+      detail: {}
+    }));
+  };
+
   return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
@@ -220,7 +229,9 @@ function ProjectDetailModal({ project, onClose, onEdit }: {
                               <p className="text-sm text-gray-600 mb-2">{rec.details}</p>
                               <p className="text-sm font-medium text-gray-900">{rec.recommendation}</p>
                             </div>
-                            <button className="ml-4 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
+                            <button
+                                onClick={handleAssignTask}
+                                className="ml-4 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
                               Apply
                             </button>
                           </div>
