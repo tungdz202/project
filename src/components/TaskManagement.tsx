@@ -22,20 +22,19 @@ import {
 } from 'lucide-react';
 import { useApi, api } from '../hooks/useApi';
 import { Task, ViewMode } from '../types';
+import axios from "axios";
 
 function PriorityBadge({ priority }: { priority: string }) {
   const colors = {
-    'critical': 'bg-red-100 text-red-700 border-red-200',
-    'high': 'bg-orange-100 text-orange-700 border-orange-200',
-    'medium': 'bg-blue-100 text-blue-700 border-blue-200',
-    'low': 'bg-gray-100 text-gray-700 border-gray-200'
+    'HIGH': 'bg-orange-100 text-orange-700 border-orange-200',
+    'MEDIUM': 'bg-blue-100 text-blue-700 border-blue-200',
+    'LOW': 'bg-gray-100 text-gray-700 border-gray-200'
   };
 
   const icons = {
-    'critical': <AlertTriangle className="w-3 h-3" />,
-    'high': <Flag className="w-3 h-3" />,
-    'medium': <Flag className="w-3 h-3" />,
-    'low': <Flag className="w-3 h-3" />
+    'HIGH': <Flag className="w-3 h-3" />,
+    'MEDIUM': <Flag className="w-3 h-3" />,
+    'LOW': <Flag className="w-3 h-3" />
   };
 
   return (
@@ -48,24 +47,24 @@ function PriorityBadge({ priority }: { priority: string }) {
 
 function StatusBadge({ status }: { status: string }) {
   const colors = {
-    'todo': 'bg-gray-100 text-gray-700',
-    'in_progress': 'bg-blue-100 text-blue-700',
-    'review': 'bg-purple-100 text-purple-700',
-    'done': 'bg-green-100 text-green-700'
+    'TODO': 'bg-gray-100 text-gray-700',
+    'IN_PROGRESS': 'bg-blue-100 text-blue-700',
+    'REVIEW': 'bg-purple-100 text-purple-700',
+    'COMPLETED': 'bg-green-100 text-green-700'
   };
 
   const icons = {
-    'todo': <PauseCircle className="w-3 h-3" />,
-    'in_progress': <PlayCircle className="w-3 h-3" />,
-    'review': <Clock className="w-3 h-3" />,
-    'done': <CheckCircle className="w-3 h-3" />
+    'TODO': <PauseCircle className="w-3 h-3" />,
+    'IN_PROGRESS': <PlayCircle className="w-3 h-3" />,
+    'REVIEW': <Clock className="w-3 h-3" />,
+    'COMPLETED': <CheckCircle className="w-3 h-3" />
   };
 
   const labels = {
-    'todo': 'To Do',
-    'in_progress': 'In Progress',
-    'review': 'Review',
-    'done': 'Done'
+    'TODO': 'To Do',
+    'IN_PROGRESS': 'In Progress',
+    'REVIEW': 'Review',
+    'COMPLETED': 'Done'
   };
 
   return (
@@ -82,12 +81,14 @@ function TaskEditModal({ task, onClose, onSave }: {
   onSave: (task: Partial<Task>) => void;
 }) {
   const [formData, setFormData] = useState({
+    id: task?.id || '',
     title: task?.title || '',
     description: task?.description || '',
     projectId: task?.projectId || '',
     assigneeId: task?.assigneeId || '',
-    status: task?.status || 'todo',
-    priority: task?.priority || 'medium',
+    assigneeName: task?.assigneeName || '',
+    status: task?.status || 'TODO',
+    priority: task?.priority || 'LOW',
     estimateHours: task?.estimateHours || 0,
     deadline: task?.deadline ? task.deadline.split('T')[0] : '',
     requiredSkills: task?.requiredSkills || []
@@ -101,36 +102,17 @@ function TaskEditModal({ task, onClose, onSave }: {
     setAiLoading(true);
     try {
       // Simulate API call for AI assignment suggestions
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setSuggestions([
-        {
-          id: '1',
-          name: 'Sarah Chen',
-          avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?w=150',
-          role: 'Senior Frontend Developer',
-          matchScore: 95,
-          reason: 'Expert in React & TypeScript, 94% completion rate, currently at 80% capacity',
-          availability: 'Available now'
-        },
-        {
-          id: '3',
-          name: 'Emma Thompson',
-          avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?w=150',
-          role: 'Mid-Level Frontend Developer',
-          matchScore: 87,
-          reason: 'Strong Vue.js skills, 92% completion rate, available in 2 days',
-          availability: 'Available in 2 days'
-        },
-        {
-          id: '2',
-          name: 'Marcus Rodriguez',
-          avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?w=150',
-          role: 'Lead Backend Developer',
-          matchScore: 75,
-          reason: 'Can handle full-stack work, but currently overloaded at 112% capacity',
-          availability: 'Overloaded'
-        }
-      ]);
+      const response = await axios.post('https://selected-duck-ethical.ngrok-free.app/task-suggestion',
+          null,
+          {
+            params: { id: task?.id || ''},
+            headers: {
+              'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': 'true',
+            },
+          }
+      );
+      setSuggestions(response.data);
       setShowAISuggestions(true);
     } catch (error) {
       console.error('AI suggestions failed:', error);
@@ -140,12 +122,16 @@ function TaskEditModal({ task, onClose, onSave }: {
   };
 
   const handleAssign = (developerId: string, developerName: string) => {
-    setFormData({ ...formData, assigneeId: developerId });
-    console.log(`Assigned task to ${developerName}`);
+    setFormData({ ...formData, assigneeId: developerId , assigneeName: developerName});
+    api.updateTask(formData).then(() => {
+    });
+    onClose();
   };
 
   const handleSave = () => {
     onSave(formData);
+    api.updateTask(formData).then(() => {
+    });
     onClose();
   };
 
@@ -203,9 +189,8 @@ function TaskEditModal({ task, onClose, onSave }: {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select Project</option>
-                      <option value="proj1">E-commerce Platform v2</option>
-                      <option value="proj2">Mobile Banking App</option>
-                      <option value="proj3">Data Analytics Dashboard</option>
+                      <option value="21">Hệ thống Quản lý Doanh Nghiệp</option>
+                      <option value="22">Mobile Banking App</option>
                     </select>
                   </div>
 
@@ -218,10 +203,9 @@ function TaskEditModal({ task, onClose, onSave }: {
                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="todo">To Do</option>
-                      <option value="in_progress">In Progress</option>
-                      <option value="review">Review</option>
-                      <option value="done">Done</option>
+                      <option value="TODO">To Do</option>
+                      <option value="IN_PROGRESS">In Progress</option>
+                      <option value="COMPLETED">Completed</option>
                     </select>
                   </div>
                 </div>
@@ -236,10 +220,9 @@ function TaskEditModal({ task, onClose, onSave }: {
                         onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="critical">Critical</option>
+                      <option value="LOW">Low</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HIGH">High</option>
                     </select>
                   </div>
 
@@ -254,6 +237,29 @@ function TaskEditModal({ task, onClose, onSave }: {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
+
+                  <div >
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Assign
+                      </label>
+                      <select
+                          value={formData.assigneeId}
+                          onChange={(e) => setFormData({ ...formData, assigneeId: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Assignee</option>
+                        <option value="42">Trần Ngọc Anh</option>
+                        <option value="43">Nguyễn Hoàng Long</option>
+                        <option value="44">Phạm Thu Hà</option>
+                        <option value="45">Đỗ Minh Khoa</option>
+                        <option value="46">Nguyễn Thị Lan</option>
+                        <option value="47">Nguyễn Lê Anh Tú</option>
+                      </select>
+                    </div>
+                  </div>
+
+
                 </div>
 
                 <div>
@@ -300,7 +306,7 @@ function TaskEditModal({ task, onClose, onSave }: {
                             <div className="flex items-start justify-between">
                               <div className="flex items-start space-x-3">
                                 <img
-                                    src={dev.avatar}
+                                    src="https://img.freepik.com/premium-vector/user-icon-icon_1076610-59410.jpg?w=150"
                                     alt={dev.name}
                                     className="w-10 h-10 rounded-full object-cover"
                                 />
@@ -402,9 +408,6 @@ function TaskTableView({ tasks }: { tasks: Task[] }) {
               Deadline
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Progress
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -427,14 +430,16 @@ function TaskTableView({ tasks }: { tasks: Task[] }) {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    E-commerce Platform v2
+                    {task.projectName}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-medium">SC</span>
+                        <img
+                            src="https://img.freepik.com/premium-vector/user-icon-icon_1076610-59410.jpg?w=150"
+                        />
                       </div>
-                      <span className="ml-2 text-sm text-gray-900">Sarah Chen</span>
+                      <span className="ml-2 text-sm text-gray-900">{task.assigneeName}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -452,17 +457,6 @@ function TaskTableView({ tasks }: { tasks: Task[] }) {
                           daysUntilDeadline === 0 ? 'Due today' :
                               daysUntilDeadline === 1 ? 'Due tomorrow' :
                                   `${daysUntilDeadline} days left`}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                        <div
-                            className="bg-blue-600 h-2 rounded-full"
-                            style={{ width: `${task.progress}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-gray-900">{task.progress}%</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -531,26 +525,6 @@ function KanbanColumn({ title, status, tasks, count }: { title: string; status: 
                     {Math.ceil((new Date(task.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))}d left
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1">
-                    {task.requiredSkills.slice(0, 2).map((skill, index) => (
-                        <span key={index} className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
-                    {skill}
-                  </span>
-                    ))}
-                  </div>
-                  <div className="text-xs text-gray-600">{task.progress}%</div>
-                </div>
-
-                {task.progress > 0 && (
-                    <div className="mt-2 w-full bg-gray-200 rounded-full h-1">
-                      <div
-                          className="bg-blue-600 h-1 rounded-full"
-                          style={{ width: `${task.progress}%` }}
-                      />
-                    </div>
-                )}
               </div>
           ))}
 
@@ -608,7 +582,23 @@ function CalendarView({ tasks }: { tasks: Task[] }) {
   );
 }
 
-function TaskFilters() {
+interface TaskFiltersProps {
+  onFilterChange: (filters: {
+    inputText: string;
+    project: string;
+    assignee: string;
+    status: string;
+  }) => void;
+}
+
+function TaskFilters({ onFilterChange }: TaskFiltersProps) {
+  const [inputText, setInputText] = useState('');
+  const [project, setProject] = useState('');
+  const [assignee, setAssignee] = useState('');
+  const [status, setStatus] = useState('');
+  const handleSearch = () => {
+    onFilterChange({ inputText, project, assignee, status });
+  };
   return (
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
         <div className="flex flex-col lg:flex-row gap-4">
@@ -617,6 +607,8 @@ function TaskFilters() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                   type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
                   placeholder="Search tasks..."
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -624,38 +616,35 @@ function TaskFilters() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select value={project} onChange={(e) => setProject(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md text-sm">
               <option value="">All Projects</option>
               <option value="proj1">E-commerce Platform v2</option>
               <option value="proj2">Mobile Banking App</option>
               <option value="proj3">Data Analytics Dashboard</option>
             </select>
 
-            <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">All Assignees</option>
-              <option value="1">Sarah Chen</option>
-              <option value="2">Marcus Rodriguez</option>
-              <option value="3">Emma Thompson</option>
+            <select value={assignee} onChange={(e) => setAssignee(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md text-sm">
+              <option value="">Assignee</option>
+              <option value="42">Trần Ngọc Anh</option>
+              <option value="43">Nguyễn Hoàng Long</option>
+              <option value="44">Phạm Thu Hà</option>
+              <option value="45">Đỗ Minh Khoa</option>
+              <option value="46">Nguyễn Thị Lan</option>
+              <option value="47">Nguyễn Lê Anh Tú</option>
             </select>
 
-            <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select value={status} onChange={(e) => setStatus(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md text-sm">
               <option value="">All Status</option>
-              <option value="todo">To Do</option>
-              <option value="in_progress">In Progress</option>
-              <option value="review">Review</option>
-              <option value="done">Done</option>
+              <option value="TODO">To Do</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Complete</option>
             </select>
 
-            <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">All Priorities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">
-              Save Filter
+            <button
+                onClick={handleSearch}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+            >
+              Search Filter
             </button>
           </div>
         </div>
@@ -664,10 +653,20 @@ function TaskFilters() {
 }
 
 export function TaskManagement() {
-  const { data: tasks, loading } = useApi(api.getTasks);
+
+  const [filters, setFilters] = useState({
+    inputText: '',
+    project: '',
+    assignee: '',
+    status: '',
+  });
+  // Gọi API với params
+  const { data: tasks, loading } = useApi(() =>
+      api.getTasks(filters.inputText, filters.project, filters.assignee, filters.status)
+  );
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [prefilledAssignee, setPrefilledAssignee] = useState<{id: string, name: string} | null>(null);
+  const [prefilledAssignee, setPrefilledAssignee] = useState<{ id: string; name: string } | null>(null);
 
   // Listen for navigation events from developer assignment
   React.useEffect(() => {
@@ -683,7 +682,7 @@ export function TaskManagement() {
     return () => {
       window.removeEventListener('navigateToTasks', handleNavigateToTasks as EventListener);
     };
-  }, []);
+  }, [filters]);
 
   if (loading) {
     return (
@@ -698,7 +697,7 @@ export function TaskManagement() {
               <div className="w-32 h-10 bg-gray-200 rounded animate-pulse" />
             </div>
           </div>
-          <TaskFilters />
+          <TaskFilters onFilterChange={setFilters} />
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="animate-pulse space-y-4">
               {[1, 2, 3, 4, 5].map(i => (
@@ -730,52 +729,37 @@ export function TaskManagement() {
             <div className="flex border border-gray-300 rounded-md">
               <button
                   onClick={() => setViewMode('table')}
-                  className={`px-3 py-2 text-sm font-medium flex items-center space-x-1 ${
-                      viewMode === 'table'
-                          ? 'bg-blue-600 text-white'
-                          : 'text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`px-3 py-2 text-sm font-medium flex items-center space-x-1 ${viewMode === 'table' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}
               >
                 <List className="w-4 h-4" />
                 <span>Table</span>
               </button>
               <button
                   onClick={() => setViewMode('kanban')}
-                  className={`px-3 py-2 text-sm font-medium flex items-center space-x-1 ${
-                      viewMode === 'kanban'
-                          ? 'bg-blue-600 text-white'
-                          : 'text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`px-3 py-2 text-sm font-medium flex items-center space-x-1 ${viewMode === 'kanban' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}
               >
                 <Grid className="w-4 h-4" />
                 <span>Kanban</span>
               </button>
               <button
                   onClick={() => setViewMode('calendar')}
-                  className={`px-3 py-2 text-sm font-medium flex items-center space-x-1 ${
-                      viewMode === 'calendar'
-                          ? 'bg-blue-600 text-white'
-                          : 'text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`px-3 py-2 text-sm font-medium flex items-center space-x-1 ${viewMode === 'calendar' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}
               >
                 <Calendar className="w-4 h-4" />
                 <span>Calendar</span>
               </button>
             </div>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium flex items-center space-x-2">
-              <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>New Task</span>
-              </button>
+            <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Task</span>
             </button>
           </div>
         </div>
 
-        <TaskFilters />
-
+        <TaskFilters onFilterChange={setFilters} />
         {tasks && tasks.length > 0 ? (
             <>
               {viewMode === 'table' && <TaskTableView tasks={tasks} />}
@@ -787,7 +771,10 @@ export function TaskManagement() {
               <CheckSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
               <p className="text-gray-600 mb-4">Create your first task to start managing your project workload.</p>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
+              <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+              >
                 Create Task
               </button>
             </div>
@@ -795,28 +782,32 @@ export function TaskManagement() {
 
         {showCreateModal && (
             <TaskEditModal
-                task={prefilledAssignee ? {
-                  assigneeId: prefilledAssignee.id,
-                  title: '',
-                  description: '',
-                  projectId: '',
-                  status: 'todo',
-                  priority: 'medium',
-                  estimateHours: 0,
-                  deadline: '',
-                  createdAt: '',
-                  updatedAt: '',
-                  requiredSkills: [],
-                  progress: 0,
-                  id: ''
-                } as Task : null}
+                task={
+                  prefilledAssignee
+                      ? {
+                        assigneeId: prefilledAssignee.id,
+                        assigneeName: '',
+                        title: '',
+                        description: '',
+                        projectId: '',
+                        projectName: '',
+                        status: 'TODO',
+                        priority: 'MEDIUM',
+                        estimateHours: 0,
+                        deadline: '',
+                        createdAt: '',
+                        updatedAt: '',
+                        requiredSkills: [],
+                        id: ''
+                      } as Task
+                      : null
+                }
                 onClose={() => {
                   setShowCreateModal(false);
                   setPrefilledAssignee(null);
                 }}
                 onSave={(newTask) => {
                   console.log('Creating task:', newTask);
-                  // Here you would call your API to create the task
                 }}
             />
         )}

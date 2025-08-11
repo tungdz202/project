@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { 
-  TrendingUp, 
-  Clock, 
-  AlertTriangle, 
-  Users, 
+import {
+  TrendingUp,
+  Clock,
+  AlertTriangle,
+  Users,
   Target,
   Calendar,
   Filter,
   Save,
-  Bot
+  Bot,
+  Search
 } from 'lucide-react';
 import { useApi, api } from '../hooks/useApi';
-import { FilterState } from '../types';
+import {FilterSearch, FilterState} from '../types';
 
 interface KPICardProps {
   title: string;
@@ -22,6 +23,8 @@ interface KPICardProps {
   color: 'blue' | 'green' | 'orange' | 'red';
   loading?: boolean;
 }
+
+
 
 function KPICard({ title, value, change, trend, icon, color, loading }: KPICardProps) {
   if (loading) {
@@ -108,13 +111,13 @@ function WorkloadChart() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">
                   <img
-                    src={dev.avatar}
+                    src="https://img.freepik.com/premium-vector/user-icon-icon_1076610-59410.jpg?w=150"
                     alt={dev.name}
                     className="w-8 h-8 rounded-full object-cover"
                   />
                   <div>
                     <div className="font-medium text-gray-900">{dev.name}</div>
-                    <div className="text-sm text-gray-600">{dev.team} • {dev.role}</div>
+                    {/*<div className="text-sm text-gray-600">{dev.team} • {dev.role}</div>*/}
                   </div>
                 </div>
                 <div className="text-right">
@@ -190,8 +193,8 @@ function ProjectProgress() {
                 />
                 <path
                   className={`transition-all ${
-                    project.riskLevel === 'high' ? 'text-red-500' : 
-                    project.riskLevel === 'medium' ? 'text-amber-500' : 'text-emerald-500'
+                    project.riskLevel === 'HIGH' ? 'text-red-500' : 
+                    project.riskLevel === 'MEDIUM' ? 'text-amber-500' : 'text-emerald-500'
                   }`}
                   stroke="currentColor"
                   strokeWidth="3"
@@ -209,9 +212,9 @@ function ProjectProgress() {
               {project.name}
             </div>
             <div className="text-xs text-gray-600">{project.client}</div>
-            {project.riskLevel !== 'low' && (
+            {project.riskLevel !== 'LOW' && (
               <div className={`inline-flex items-center px-2 py-1 mt-1 text-xs rounded-full ${
-                project.riskLevel === 'high' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                project.riskLevel === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
               }`}>
                 <AlertTriangle className="w-3 h-3 mr-1" />
                 Risk: {project.riskLevel}
@@ -224,10 +227,12 @@ function ProjectProgress() {
   );
 }
 
-function QuickFilters() {
-  const [filters, setFilters] = useState<FilterState>({});
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
+function QuickFilters({ filters, setFilters, onSearch }: {
+  filters: FilterSearch;
+  setFilters: React.Dispatch<React.SetStateAction<FilterSearch>>;
+  onSearch: () => void;
+}) {
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -237,22 +242,26 @@ function QuickFilters() {
             <span className="text-sm font-medium text-gray-700">Quick Filters:</span>
           </div>
           
-          <select className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select
+              value={filters.project || ""}
+              onChange={(e) => setFilters(f => ({ ...f, project: e.target.value }))}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">All Projects</option>
-            <option value="proj1">E-commerce Platform v2</option>
-            <option value="proj2">Mobile Banking App</option>
-            <option value="proj3">Data Analytics Dashboard</option>
+            <option value="21">Hệ thống Quản lý Doanh nghiệp</option>
+            <option value="14">Mobile Banking App</option>
+            {/*<option value="11">Data Analytics Dashboard</option>*/}
           </select>
-
-          <select className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">All Teams</option>
-            <option value="frontend">Frontend</option>
-            <option value="backend">Backend</option>
-            <option value="devops">DevOps</option>
+          <select
+              value={filters.status || ""}
+              onChange={(e) => setFilters(f => ({ ...f, status: e.target.value }))}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Status</option>
+            <option value="TODO">To Do</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
           </select>
-
           <select className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">This Month</option>
+            <option value="">Status</option>
             <option value="week">This Week</option>
             <option value="quarter">This Quarter</option>
             <option value="custom">Custom Range</option>
@@ -260,11 +269,11 @@ function QuickFilters() {
         </div>
 
         <button
-          onClick={() => setShowSaveDialog(true)}
-          className="flex items-center px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+            onClick={onSearch}
+            className="flex items-center px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
         >
-          <Save className="w-4 h-4 mr-1" />
-          Save Filter
+          <Search className="w-4 h-4 mr-1" />
+          Search
         </button>
       </div>
     </div>
@@ -323,7 +332,12 @@ function AIInsights() {
 }
 
 function UpcomingDeadlines() {
-  const { data: tasks, loading } = useApi(api.getTasks);
+  // const { data: tasks, loading } = useApi(api.getTasks);
+  // Gọi API với params
+  const { data: tasks, loading } = useApi(() =>
+      api.getTasks("", "", "", "")
+  );
+
 
   if (loading) {
     return (
@@ -368,9 +382,8 @@ function UpcomingDeadlines() {
             <div key={task.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
               <div className="flex items-center space-x-3">
                 <div className={`w-3 h-3 rounded-full ${
-                  task.priority === 'critical' ? 'bg-red-500' :
-                  task.priority === 'high' ? 'bg-orange-500' :
-                  task.priority === 'medium' ? 'bg-blue-500' : 'bg-gray-400'
+                  task.priority === 'HIGH' ? 'bg-orange-500' :
+                  task.priority === 'MEDIUM' ? 'bg-blue-500' : 'bg-gray-400'
                 }`} />
                 <div>
                   <div className="font-medium text-gray-900 text-sm">{task.title}</div>
@@ -403,11 +416,25 @@ function UpcomingDeadlines() {
 }
 
 export function Dashboard() {
-  const { data: kpis, loading: kpiLoading } = useApi(api.getDashboardKPIs);
+  // const { data: kpis, loading: kpiLoading } = useApi(api.getDashboardKPIs);
+
+  const [filters, setFilters] = useState<FilterSearch>({ project: "", status: "" });
+
+  const { data: kpis, loading: kpiLoading, refetch: refetchKPIs } = useApi(() =>
+      api.getDashboardKPIs(filters.project, filters.status)
+  );
+
+  const handleSearch = () => {
+    refetchKPIs();
+  };
 
   return (
     <div className="p-6 space-y-6">
-      <QuickFilters />
+      <QuickFilters
+          filters={filters}
+          setFilters={setFilters}
+          onSearch={handleSearch}
+      />
       
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

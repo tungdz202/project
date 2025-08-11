@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import {
   Search,
   Filter,
@@ -20,7 +21,7 @@ import {
   UserX
 } from 'lucide-react';
 import { useApi, api } from '../hooks/useApi';
-import { Project } from '../types';
+import {Project, SuggestProject} from '../types';
 
 function ProjectDetailModal({ project, onClose, onEdit }: {
   project: Project;
@@ -29,29 +30,25 @@ function ProjectDetailModal({ project, onClose, onEdit }: {
 }) {
   const [showAIRecommendations, setShowAIRecommendations] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
-  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [recommendations, setRecommendations] = useState<SuggestProject[]>([]);
 
   const handleAIAnalysis = async () => {
     setAiLoading(true);
     try {
       // Simulate API call for AI project analysis
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setRecommendations([
-        {
-          type: 'replace',
-          developer: 'John Smith',
-          reason: 'Low performance on similar tasks, 65% completion rate',
-          suggestion: 'Replace with Sarah Chen (95% completion rate, React expert)',
-          priority: 'high'
-        },
-        {
-          type: 'add',
-          role: 'Backend Developer',
-          reason: 'Current backend workload at 120%, causing delays',
-          suggestion: 'Add Marcus Rodriguez or hire new senior backend dev',
-          priority: 'medium'
-        }
-      ]);
+      // Gọi API với params
+      const response = await axios.post('https://selected-duck-ethical.ngrok-free.app/smart-segregate',
+          null,
+          {
+            params: { id: project.id }, // truyền id vào query param
+            headers: {
+              'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': 'true',
+            },
+          }
+      );
+      // const response = api.getRecommendProject(project.id);
+      setRecommendations(response.data.actions);
       setShowAIRecommendations(true);
     } catch (error) {
       console.error('AI analysis failed:', error);
@@ -123,30 +120,30 @@ function ProjectDetailModal({ project, onClose, onEdit }: {
                         {new Date(project.startDate).toLocaleDateString()} - {new Date(project.endDate).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-900 mb-2">Budget</h4>
-                      <p className="text-sm text-gray-700">
-                        {project.budget ? `$${project.budget.toLocaleString()}` : 'Not specified'}
-                      </p>
-                    </div>
+                    {/*<div className="bg-gray-50 rounded-lg p-4">*/}
+                    {/*  <h4 className="font-medium text-gray-900 mb-2">Budget</h4>*/}
+                    {/*  <p className="text-sm text-gray-700">*/}
+                    {/*    {project.budget ? `$${project.budget.toLocaleString()}` : 'Not specified'}*/}
+                    {/*  </p>*/}
+                    {/*</div>*/}
                   </div>
 
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Milestones</h4>
-                    <div className="space-y-2">
-                      {project.milestones.map((milestone) => (
-                          <div key={milestone.id} className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <div className={`w-2 h-2 rounded-full ${milestone.completed ? 'bg-green-500' : 'bg-gray-300'}`} />
-                              <span className="text-sm text-gray-700">{milestone.title}</span>
-                            </div>
-                            <span className="text-xs text-gray-500">
-                          {new Date(milestone.date).toLocaleDateString()}
-                        </span>
-                          </div>
-                      ))}
-                    </div>
-                  </div>
+                  {/*<div className="bg-gray-50 rounded-lg p-4">*/}
+                  {/*  <h4 className="font-medium text-gray-900 mb-3">Milestones</h4>*/}
+                  {/*  <div className="space-y-2">*/}
+                  {/*    {project.milestones.map((milestone) => (*/}
+                  {/*        <div key={milestone.id} className="flex items-center justify-between">*/}
+                  {/*          <div className="flex items-center space-x-2">*/}
+                  {/*            <div className={`w-2 h-2 rounded-full ${milestone.completed ? 'bg-green-500' : 'bg-gray-300'}`} />*/}
+                  {/*            <span className="text-sm text-gray-700">{milestone.title}</span>*/}
+                  {/*          </div>*/}
+                  {/*          <span className="text-xs text-gray-500">*/}
+                  {/*        {new Date(milestone.date).toLocaleDateString()}*/}
+                  {/*      </span>*/}
+                  {/*        </div>*/}
+                  {/*    ))}*/}
+                  {/*  </div>*/}
+                  {/*</div>*/}
                 </div>
               </div>
 
@@ -181,11 +178,11 @@ function ProjectDetailModal({ project, onClose, onEdit }: {
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h4 className="font-medium text-gray-900 mb-3">Risk Assessment</h4>
                     <div className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-medium ${
-                        project.riskLevel === 'high' ? 'bg-red-100 text-red-700' :
-                            project.riskLevel === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                        project.riskLevel === 'HIGH' ? 'bg-red-100 text-red-700' :
+                            project.riskLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
                                 'bg-green-100 text-green-700'
                     }`}>
-                      {project.riskLevel === 'high' && <AlertTriangle className="w-4 h-4 mr-2" />}
+                      {project.riskLevel === 'HIGH' && <AlertTriangle className="w-4 h-4 mr-2" />}
                       {project.riskLevel.charAt(0).toUpperCase() + project.riskLevel.slice(1)} Risk
                     </div>
                   </div>
@@ -206,22 +203,22 @@ function ProjectDetailModal({ project, onClose, onEdit }: {
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-2">
-                                {rec.type === 'replace' ? (
+                                {rec.action === 'Replace' ? (
                                     <UserX className="w-4 h-4 text-red-500" />
                                 ) : (
                                     <UserCheck className="w-4 h-4 text-green-500" />
                                 )}
                                 <span className="font-medium text-gray-900">
-                            {rec.type === 'replace' ? 'Replace Developer' : 'Add Team Member'}
+                            {rec.action === 'Replace' ? 'Replace Developer' : 'Add Team Member'}
                           </span>
                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    rec.priority === 'high' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                                    rec.priority === 'Cao' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
                                 }`}>
                             {rec.priority} priority
                           </span>
                               </div>
-                              <p className="text-sm text-gray-600 mb-2">{rec.reason}</p>
-                              <p className="text-sm font-medium text-gray-900">{rec.suggestion}</p>
+                              <p className="text-sm text-gray-600 mb-2">{rec.details}</p>
+                              <p className="text-sm font-medium text-gray-900">{rec.recommendation}</p>
                             </div>
                             <button className="ml-4 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
                               Apply
@@ -250,8 +247,7 @@ function ProjectEditModal({ project, onClose, onSave }: {
     description: project?.description || '',
     startDate: project?.startDate || '',
     endDate: project?.endDate || '',
-    budget: project?.budget || 0,
-    status: project?.status || 'planning'
+    status: project?.status || 'PLANNING'
   });
 
   const handleSave = () => {
@@ -356,17 +352,17 @@ function ProjectEditModal({ project, onClose, onSave }: {
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Budget ($)
-                </label>
-                <input
-                    type="number"
-                    value={formData.budget}
-                    onChange={(e) => setFormData({ ...formData, budget: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              {/*<div className="md:col-span-2">*/}
+              {/*  <label className="block text-sm font-medium text-gray-700 mb-2">*/}
+              {/*    Budget ($)*/}
+              {/*  </label>*/}
+              {/*  <input*/}
+              {/*      type="number"*/}
+              {/*      value={formData.budget}*/}
+              {/*      onChange={(e) => setFormData({ ...formData, budget: parseInt(e.target.value) || 0 })}*/}
+              {/*      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"*/}
+              {/*  />*/}
+              {/*</div>*/}
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -453,7 +449,7 @@ function ProjectCard({ project }: { project: Project }) {
             <p className="text-xs text-gray-500">PM: {project.pm}</p>
           </div>
           <div className="flex items-center space-x-2">
-            {project.riskLevel !== 'low' && (
+            {project.riskLevel !== 'LOW' && (
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(project.riskLevel)}`}>
               <AlertTriangle className="w-3 h-3 mr-1" />
                   {project.riskLevel} risk
@@ -473,8 +469,8 @@ function ProjectCard({ project }: { project: Project }) {
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
                 className={`h-2 rounded-full transition-all ${
-                    project.riskLevel === 'high' ? 'bg-red-500' :
-                        project.riskLevel === 'medium' ? 'bg-amber-500' : 'bg-green-500'
+                    project.riskLevel === 'HIGH' ? 'bg-red-500' :
+                        project.riskLevel === 'MEDIUM' ? 'bg-amber-500' : 'bg-green-500'
                 }`}
                 style={{ width: `${project.progress}%` }}
             />
@@ -604,9 +600,9 @@ function ProjectTable({ projects }: { projects: Project[] }) {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    project.status === 'active' ? 'bg-green-100 text-green-700' :
-                        project.status === 'completed' ? 'bg-blue-100 text-blue-700' :
-                            project.status === 'paused' ? 'bg-yellow-100 text-yellow-700' :
+                    project.status === 'TODO' ? 'bg-green-100 text-green-700' :
+                        project.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
+                            project.status === 'PLANNING' ? 'bg-yellow-100 text-yellow-700' :
                                 'bg-gray-100 text-gray-700'
                 }`}>
                   {project.status}
@@ -634,11 +630,11 @@ function ProjectTable({ projects }: { projects: Project[] }) {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    project.riskLevel === 'high' ? 'bg-red-100 text-red-700' :
-                        project.riskLevel === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                    project.riskLevel === 'HIGH' ? 'bg-red-100 text-red-700' :
+                        project.riskLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
                             'bg-green-100 text-green-700'
                 }`}>
-                  {project.riskLevel === 'high' && <AlertTriangle className="w-3 h-3 mr-1" />}
+                  {project.riskLevel === 'HIGH' && <AlertTriangle className="w-3 h-3 mr-1" />}
                   {project.riskLevel}
                 </span>
                 </td>
@@ -691,12 +687,12 @@ function ProjectFilters() {
               <option value="lisa">Lisa Chen</option>
             </select>
 
-            <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">All Risk Levels</option>
-              <option value="low">Low Risk</option>
-              <option value="medium">Medium Risk</option>
-              <option value="high">High Risk</option>
-            </select>
+            {/*<select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">*/}
+            {/*  <option value="">All Risk Levels</option>*/}
+            {/*  <option value="low">Low Risk</option>*/}
+            {/*  <option value="medium">Medium Risk</option>*/}
+            {/*  <option value="high">High Risk</option>*/}
+            {/*</select>*/}
 
             <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">
               Apply Filters
@@ -802,7 +798,9 @@ export function ProjectList() {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
               <p className="text-gray-600 mb-4">Create your first project to get started with task management.</p>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
+              <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
                 Create Project
               </button>
             </div>

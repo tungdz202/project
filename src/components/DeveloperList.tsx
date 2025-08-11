@@ -156,12 +156,12 @@ function SendMessageModal({ developer, onClose, onSend }: {
 function DeveloperCard({ developer, onSelect }: { developer: Developer; onSelect: (dev: Developer) => void }) {
   const getStatusColor = (status: string) => {
     const colors = {
-      'available': 'bg-green-100 text-green-700 border-green-200',
-      'busy': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      'overloaded': 'bg-red-100 text-red-700 border-red-200',
-      'offline': 'bg-gray-100 text-gray-700 border-gray-200'
+      'AVAILABLE': 'bg-green-100 text-green-700 border-green-200',
+      'BUSY': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+      'OVERLOADED': 'bg-red-100 text-red-700 border-red-200',
+      'OFFLINE': 'bg-gray-100 text-gray-700 border-gray-200'
     };
-    return colors[status as keyof typeof colors] || colors.offline;
+    return colors[status as keyof typeof colors] || colors.OFFLINE;
   };
 
   const utilizationPercent = (developer.workloadHours / developer.maxCapacity) * 100;
@@ -175,19 +175,19 @@ function DeveloperCard({ developer, onSelect }: { developer: Developer; onSelect
           <div className="flex items-start space-x-4">
             <div className="relative">
               <img
-                  src={developer.avatar}
+                  src="https://img.freepik.com/premium-vector/user-icon-icon_1076610-59410.jpg?w=150"
                   alt={developer.name}
                   className="w-12 h-12 rounded-full object-cover"
               />
               <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                  developer.status === 'available' ? 'bg-green-500' :
-                      developer.status === 'busy' ? 'bg-yellow-500' :
-                          developer.status === 'overloaded' ? 'bg-red-500' : 'bg-gray-400'
+                  developer.status === 'AVAILABLE' ? 'bg-green-500' :
+                      developer.status === 'BUSY' ? 'bg-yellow-500' :
+                          developer.status === 'OVERLOADED' ? 'bg-red-500' : 'bg-gray-400'
               }`} />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">{developer.name}</h3>
-              <p className="text-sm text-gray-600">{developer.role} • {developer.team}</p>
+              {/*<p className="text-sm text-gray-600">{developer.role} • {developer.team}</p>*/}
               <p className="text-xs text-gray-500">{developer.email}</p>
             </div>
           </div>
@@ -241,7 +241,7 @@ function DeveloperCard({ developer, onSelect }: { developer: Developer; onSelect
 
         <div className="flex justify-between items-center">
         <span className="text-xs text-gray-500">
-          {developer.activeProjects.length} active project{developer.activeProjects.length !== 1 ? 's' : ''}
+          {/*{developer.activeProjects.length} active project{developer.activeProjects.length !== 1 ? 's' : ''}*/}
         </span>
           <div className="flex space-x-2">
             <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded">
@@ -278,31 +278,22 @@ function DeveloperFilters() {
 
           <div className="flex flex-wrap gap-2">
             <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">All Roles</option>
-              <option value="junior">Junior</option>
-              <option value="mid">Mid-Level</option>
-              <option value="senior">Senior</option>
-              <option value="lead">Lead</option>
-              <option value="principal">Principal</option>
-            </select>
-
-            <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">All Teams</option>
+              <option value="">All project</option>
               <option value="frontend">Frontend</option>
               <option value="backend">Backend</option>
               <option value="devops">DevOps</option>
               <option value="mobile">Mobile</option>
             </select>
 
-            <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">All Status</option>
-              <option value="available">Available</option>
-              <option value="busy">Busy</option>
-              <option value="overloaded">Overloaded</option>
-            </select>
+            {/*<select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">*/}
+            {/*  <option value="">All Status</option>*/}
+            {/*  <option value="available">Available</option>*/}
+            {/*  <option value="busy">Busy</option>*/}
+            {/*  <option value="overloaded">Overloaded</option>*/}
+            {/*</select>*/}
 
             <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">
-              Save Filter
+              Search
             </button>
           </div>
         </div>
@@ -337,13 +328,13 @@ function DeveloperDetail({ developer, onClose }: { developer: Developer; onClose
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <img
-                    src={developer.avatar}
+                    src="https://img.freepik.com/premium-vector/user-icon-icon_1076610-59410.jpg?w=150"
                     alt={developer.name}
                     className="w-16 h-16 rounded-full object-cover border-4 border-white/20"
                 />
                 <div>
                   <h2 className="text-2xl font-bold">{developer.name}</h2>
-                  <p className="text-blue-100">{developer.role} • {developer.team}</p>
+                  {/*<p className="text-blue-100">{developer.role} • {developer.team}</p>*/}
                   <p className="text-blue-200 text-sm">{developer.email}</p>
                 </div>
               </div>
@@ -481,7 +472,7 @@ function DeveloperDetail({ developer, onClose }: { developer: Developer; onClose
                     <div className="mt-6">
                       <h4 className="font-medium text-gray-900 mb-3">Recent Activity</h4>
                       <div className="space-y-3">
-                        {developer.recentActivity.length > 0 ? (
+                        {(developer.recentActivity !=null && developer.recentActivity.length > 0) ? (
                             developer.recentActivity.map(activity => (
                                 <div key={activity.id} className="flex items-start space-x-3">
                                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2" />
@@ -506,20 +497,25 @@ function DeveloperDetail({ developer, onClose }: { developer: Developer; onClose
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Projects</h3>
                   <div className="space-y-3">
-                    {developer.activeProjects.map(projectId => (
-                        <div key={projectId} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-medium text-gray-900">E-commerce Platform v2</h4>
-                              <p className="text-sm text-gray-600">Frontend Developer • 67% complete</p>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-sm font-medium text-green-600">On Track</span>
-                              <p className="text-xs text-gray-500">Due: Mar 15, 2025</p>
-                            </div>
-                          </div>
-                        </div>
-                    ))}
+
+                    {(developer.activeProjects !=null && developer.activeProjects.length > 0) ? (
+                        developer.activeProjects.map(id => (
+                              <div key={id} className="border border-gray-200 rounded-lg p-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <h4 className="font-medium text-gray-900">E-commerce Platform v2</h4>
+                                    <p className="text-sm text-gray-600">Frontend Developer • 67% complete</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-sm font-medium text-green-600">On Track</span>
+                                    <p className="text-xs text-gray-500">Due: Mar 15, 2025</p>
+                                  </div>
+                                </div>
+                              </div>
+                          ))
+                    ) : (
+                        <p className="text-sm text-gray-500">No recent project</p>
+                    )}
                   </div>
                 </div>
             )}

@@ -3,9 +3,7 @@ export interface Developer {
   name: string;
   email: string;
   avatar: string;
-  role: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Principal';
-  team: string;
-  status: 'available' | 'busy' | 'overloaded' | 'offline';
+  status: 'AVAILABLE' | 'BUSY' | 'OVERLOADED' | 'offline';
   skills: Skill[];
   workloadHours: number;
   maxCapacity: number;
@@ -30,14 +28,13 @@ export interface Project {
   pm: string;
   startDate: string;
   endDate: string;
-  status: 'active' | 'completed' | 'paused' | 'planning';
+  status: 'TODO' | 'IN_PROGRESS' | 'COMPLETED' | 'PLANNING';
   progress: number;
-  riskLevel: 'low' | 'medium' | 'high';
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
   teamSize: number;
   taskCount: number;
   budget?: number;
   description: string;
-  milestones: Milestone[];
 }
 
 export interface Task {
@@ -45,16 +42,18 @@ export interface Task {
   title: string;
   description: string;
   projectId: string;
+  projectName: string;
   assigneeId: string;
-  status: 'todo' | 'in_progress' | 'review' | 'done';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  assigneeName: string,
+  status: 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'COMPLETED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' ;
   estimateHours: number;
   actualHours?: number;
   deadline: string;
   createdAt: string;
   updatedAt: string;
   requiredSkills: string[];
-  progress: number;
+  // progress: number;
   subtasks?: Subtask[];
 }
 
@@ -85,7 +84,6 @@ export interface KPI {
   onTimeRate: number;
   overdueTasks: number;
   overloadedDevs: number;
-  avgTaskCompletion: number;
   projectsAtRisk: number;
 }
 
@@ -99,6 +97,11 @@ export interface FilterState {
     start: string;
     end: string;
   };
+}
+
+export interface FilterSearch {
+  project?: string;
+  status?: string;
 }
 
 export interface NotificationSettings {
