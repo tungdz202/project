@@ -261,7 +261,7 @@ function QuickFilters({ filters, setFilters, onSearch }: {
             <option value="COMPLETED">Completed</option>
           </select>
           <select className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">Status</option>
+            <option value="">Time</option>
             <option value="week">This Week</option>
             <option value="quarter">This Quarter</option>
             <option value="custom">Custom Range</option>
