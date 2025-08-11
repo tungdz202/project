@@ -21,7 +21,7 @@ import {
   UserX
 } from 'lucide-react';
 import { useApi, api } from '../hooks/useApi';
-import {Project, SuggestProject} from '../types';
+import {Project} from '../types';
 
 function ProjectDetailModal({ project, onClose, onEdit }: {
   project: Project;

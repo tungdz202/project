@@ -567,14 +567,13 @@ function KanbanColumn({ title, status, tasks, count }: { title: string; status: 
 
 function KanbanView({ tasks }: { tasks: Task[] }) {
   const columns = [
-    { title: 'To Do', status: 'todo' },
-    { title: 'In Progress', status: 'in_progress' },
-    { title: 'Review', status: 'review' },
-    { title: 'Done', status: 'done' }
+    { title: 'To Do', status: 'TODO' },
+    { title: 'In Progress', status: 'IN_PROGRESS' },
+    { title: 'Done', status: 'COMPLETED' }
   ];
 
   return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {columns.map((column) => (
             <KanbanColumn
                 key={column.status}
@@ -646,9 +645,8 @@ function TaskFilters({ onFilterChange }: TaskFiltersProps) {
           <div className="flex flex-wrap gap-2">
             <select value={project} onChange={(e) => setProject(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md text-sm">
               <option value="">All Projects</option>
-              <option value="proj1">E-commerce Platform v2</option>
-              <option value="proj2">Mobile Banking App</option>
-              <option value="proj3">Data Analytics Dashboard</option>
+              <option value="21">Hệ thống Quản lý Doanh nghiệp</option>
+              {/*<option value="22">Mobile Banking App</option>*/}
             </select>
 
             <select value={assignee} onChange={(e) => setAssignee(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md text-sm">
