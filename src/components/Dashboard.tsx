@@ -1,496 +1,244 @@
-import React, { useState } from 'react';
-import {
-  TrendingUp,
-  Clock,
-  AlertTriangle,
-  Users,
-  Target,
-  Calendar,
-  Filter,
-  Save,
-  Bot,
-  Search
-} from 'lucide-react';
-import { useApi, api } from '../hooks/useApi';
-import {FilterSearch, FilterState} from '../types';
+import React from 'react';
+import { useState, useEffect } from 'react';
+import { AlertTriangle, CheckCircle, Clock, Users, TrendingUp, AlertCircle } from 'lucide-react';
+import { incidentAPI, developerAPI } from '../services/api';
 
-interface KPICardProps {
-  title: string;
-  value: string | number;
-  change?: string;
-  trend?: 'up' | 'down' | 'neutral';
-  icon: React.ReactNode;
-  color: 'blue' | 'green' | 'orange' | 'red';
-  loading?: boolean;
-}
+const Dashboard: React.FC = () => {
+  const [statistics, setStatistics] = useState<Record<string, number>>({});
+  const [incidents, setIncidents] = useState<any[]>([]);
+  const [developers, setDevelopers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-
-
-function KPICard({ title, value, change, trend, icon, color, loading }: KPICardProps) {
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <div className="animate-pulse">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
-            <div className="w-16 h-4 bg-gray-200 rounded"></div>
-          </div>
-          <div className="w-24 h-8 bg-gray-200 rounded mb-2"></div>
-          <div className="w-20 h-4 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    );
-  }
-
-  const colorClasses = {
-    blue: 'bg-blue-500 text-blue-600 bg-blue-50',
-    green: 'bg-emerald-500 text-emerald-600 bg-emerald-50',
-    orange: 'bg-amber-500 text-amber-600 bg-amber-50',
-    red: 'bg-red-500 text-red-600 bg-red-50'
-  };
-
-  return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`w-12 h-12 ${colorClasses[color].split(' ')[2]} rounded-lg flex items-center justify-center`}>
-          <div className={`${colorClasses[color].split(' ')[1]}`}>
-            {icon}
-          </div>
-        </div>
-        {change && (
-          <div className={`flex items-center text-sm font-medium ${
-            trend === 'up' ? 'text-emerald-600' : trend === 'down' ? 'text-red-600' : 'text-gray-600'
-          }`}>
-            <TrendingUp className={`w-4 h-4 mr-1 ${trend === 'down' ? 'rotate-180' : ''}`} />
-            {change}
-          </div>
-        )}
-      </div>
-      <div className="mb-2">
-        <div className="text-2xl font-bold text-gray-900">{value}</div>
-        <div className="text-sm text-gray-600">{title}</div>
-      </div>
-    </div>
-  );
-}
-
-function WorkloadChart() {
-  const { data: developers, loading } = useApi(api.getDevelopers);
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <div className="animate-pulse">
-          <div className="w-32 h-6 bg-gray-200 rounded mb-4"></div>
-          <div className="space-y-3">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                <div className="flex-1">
-                  <div className="w-24 h-4 bg-gray-200 rounded mb-1"></div>
-                  <div className="w-full h-2 bg-gray-200 rounded"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Workload</h3>
-      <div className="space-y-4">
-        {developers?.map((dev) => {
-          const utilizationPercent = (dev.workloadHours / dev.maxCapacity) * 100;
-          const isOverloaded = utilizationPercent > 100;
-          
-          return (
-            <div key={dev.id} className="group cursor-pointer">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-3">
-                  <img
-                    src="https://img.freepik.com/premium-vector/user-icon-icon_1076610-59410.jpg?w=150"
-                    alt={dev.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                  <div>
-                    <div className="font-medium text-gray-900">{dev.name}</div>
-                    {/*<div className="text-sm text-gray-600">{dev.team} • {dev.role}</div>*/}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium text-gray-900">
-                    {dev.workloadHours}h / {dev.maxCapacity}h
-                  </div>
-                  <div className={`text-xs ${isOverloaded ? 'text-red-600' : 'text-gray-600'}`}>
-                    {utilizationPercent.toFixed(0)}% utilized
-                  </div>
-                </div>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full transition-all ${
-                    isOverloaded 
-                      ? 'bg-red-500' 
-                      : utilizationPercent > 80 
-                      ? 'bg-amber-500' 
-                      : 'bg-emerald-500'
-                  }`}
-                  style={{ width: `${Math.min(utilizationPercent, 100)}%` }}
-                />
-              </div>
-              {isOverloaded && (
-                <div className="mt-1 text-xs text-red-600 flex items-center">
-                  <AlertTriangle className="w-3 h-3 mr-1" />
-                  Overloaded by {(utilizationPercent - 100).toFixed(0)}%
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function ProjectProgress() {
-  const { data: projects, loading } = useApi(api.getProjects);
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <div className="animate-pulse">
-          <div className="w-32 h-6 bg-gray-200 rounded mb-4"></div>
-          <div className="grid grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="text-center">
-                <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-2"></div>
-                <div className="w-20 h-4 bg-gray-200 rounded mx-auto"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Progress</h3>
-      <div className="grid grid-cols-2 gap-4">
-        {projects?.map((project) => (
-          <div key={project.id} className="text-center cursor-pointer group">
-            <div className="relative w-16 h-16 mx-auto mb-2">
-              <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
-                <path
-                  className="text-gray-200"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  fill="transparent"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className={`transition-all ${
-                    project.riskLevel === 'HIGH' ? 'text-red-500' : 
-                    project.riskLevel === 'MEDIUM' ? 'text-amber-500' : 'text-emerald-500'
-                  }`}
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  fill="transparent"
-                  strokeDasharray={`${project.progress}, 100`}
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-bold text-gray-900">{project.progress}%</span>
-              </div>
-            </div>
-            <div className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-              {project.name}
-            </div>
-            <div className="text-xs text-gray-600">{project.client}</div>
-            {project.riskLevel !== 'LOW' && (
-              <div className={`inline-flex items-center px-2 py-1 mt-1 text-xs rounded-full ${
-                project.riskLevel === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-              }`}>
-                <AlertTriangle className="w-3 h-3 mr-1" />
-                Risk: {project.riskLevel}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-
-function QuickFilters({ filters, setFilters, onSearch }: {
-  filters: FilterSearch;
-  setFilters: React.Dispatch<React.SetStateAction<FilterSearch>>;
-  onSearch: () => void;
-}) {
-  return (
-    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center space-x-4 flex-wrap">
-          <div className="flex items-center space-x-2">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Quick Filters:</span>
-          </div>
-          
-          <select
-              value={filters.project || ""}
-              onChange={(e) => setFilters(f => ({ ...f, project: e.target.value }))}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">All Projects</option>
-            <option value="21">Hệ thống Quản lý Doanh nghiệp</option>
-            <option value="14">Mobile Banking App</option>
-            {/*<option value="11">Data Analytics Dashboard</option>*/}
-          </select>
-          <select
-              value={filters.status || ""}
-              onChange={(e) => setFilters(f => ({ ...f, status: e.target.value }))}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">Status</option>
-            <option value="TODO">To Do</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="COMPLETED">Completed</option>
-          </select>
-          <select className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">Time</option>
-            <option value="week">This Week</option>
-            <option value="quarter">This Quarter</option>
-            <option value="custom">Custom Range</option>
-          </select>
-        </div>
-
-        <button
-            onClick={onSearch}
-            className="flex items-center px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-        >
-          <Search className="w-4 h-4 mr-1" />
-          Search
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function AIInsights() {
-  return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Bot className="w-5 h-5 text-white" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900">AI Recommendations</h3>
-        </div>
-      </div>
-      
-      <div className="space-y-4">
-        <div className="bg-white rounded-lg p-4 border border-blue-200">
-          <div className="flex items-start space-x-3">
-            <div className="w-2 h-2 bg-amber-500 rounded-full mt-2"></div>
-            <div>
-              <h4 className="font-medium text-gray-900 mb-1">Workload Rebalancing Needed</h4>
-              <p className="text-sm text-gray-600 mb-2">
-                Marcus Rodriguez is 12% overloaded. Consider redistributing 2 backend tasks to available team members.
-              </p>
-              <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                View Suggestions →
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-4 border border-blue-200">
-          <div className="flex items-start space-x-3">
-            <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
-            <div>
-              <h4 className="font-medium text-gray-900 mb-1">Risk Alert: Mobile Banking App</h4>
-              <p className="text-sm text-gray-600 mb-2">
-                Project timeline at risk due to security audit delays. Recommend additional resources or scope adjustment.
-              </p>
-              <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                See Details →
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <button className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-          Apply All Recommendations
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function UpcomingDeadlines() {
-  // const { data: tasks, loading } = useApi(api.getTasks);
-  // Gọi API với params
-  const { data: tasks, loading } = useApi(() =>
-      api.getTasks("", "", "", "")
-  );
-
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <div className="animate-pulse">
-          <div className="w-32 h-6 bg-gray-200 rounded mb-4"></div>
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gray-200 rounded"></div>
-                <div className="flex-1">
-                  <div className="w-32 h-4 bg-gray-200 rounded mb-1"></div>
-                  <div className="w-24 h-3 bg-gray-200 rounded"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const upcomingTasks = tasks?.filter(task => {
-    const deadline = new Date(task.deadline);
-    const now = new Date();
-    const diffTime = deadline.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays <= 7 && diffDays >= 0;
-  }).sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
-
-  return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Deadlines</h3>
-      <div className="space-y-3">
-        {upcomingTasks?.slice(0, 5).map((task) => {
-          const deadline = new Date(task.deadline);
-          const now = new Date();
-          const diffTime = deadline.getTime() - now.getTime();
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          
-          return (
-            <div key={task.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
-              <div className="flex items-center space-x-3">
-                <div className={`w-3 h-3 rounded-full ${
-                  task.priority === 'HIGH' ? 'bg-orange-500' :
-                  task.priority === 'MEDIUM' ? 'bg-blue-500' : 'bg-gray-400'
-                }`} />
-                <div>
-                  <div className="font-medium text-gray-900 text-sm">{task.title}</div>
-                  <div className="text-xs text-gray-600">Project: E-commerce Platform v2</div>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className={`text-sm font-medium ${
-                  diffDays <= 1 ? 'text-red-600' : diffDays <= 3 ? 'text-amber-600' : 'text-gray-600'
-                }`}>
-                  {diffDays === 0 ? 'Today' : diffDays === 1 ? 'Tomorrow' : `${diffDays} days`}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {deadline.toLocaleDateString()}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [statsData, incidentsData, developersData] = await Promise.all([
+          incidentAPI.getStatistics(),
+          incidentAPI.getAll(),
+          developerAPI.getAll()
+        ]);
         
-        {(!upcomingTasks || upcomingTasks.length === 0) && (
-          <div className="text-center py-6 text-gray-500">
-            <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-            <p className="text-sm">No upcoming deadlines in the next 7 days</p>
-          </div>
-        )}
+        setStatistics(statsData);
+        setIncidents(incidentsData);
+        setDevelopers(developersData);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  const totalIncidents = statistics.total || 0;
+  const inProgressIncidents = statistics.inProgress || 0;
+  const resolvedIncidents = statistics.resolved || 0;
+  const overdueIncidents = statistics.overdue || 0;
+
+  const priorityStats = {
+    critical: statistics.critical || 0,
+    high: statistics.high || 0,
+    medium: statistics.medium || 0,
+    low: statistics.low || 0
+  };
+
+  const StatusCard = ({ title, value, icon: Icon, color, bgColor }: {
+    title: string;
+    value: number;
+    icon: React.ElementType;
+    color: string;
+    bgColor: string;
+  }) => (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-slate-600 text-sm font-medium">{title}</p>
+          <p className="text-3xl font-bold text-slate-900 mt-1">{value}</p>
+        </div>
+        <div className={`${bgColor} p-3 rounded-lg`}>
+          <Icon className={`w-6 h-6 ${color}`} />
+        </div>
       </div>
     </div>
   );
-}
 
-export function Dashboard() {
-  // const { data: kpis, loading: kpiLoading } = useApi(api.getDashboardKPIs);
+  const PriorityChart = () => {
+    const total = Object.values(priorityStats).reduce((sum, val) => sum + val, 0);
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Sự Cố Theo Mức Độ Nghiêm Trọng</h3>
+        <div className="space-y-4">
+          {Object.entries(priorityStats).map(([priority, count]) => {
+            const percentage = total > 0 ? (count / total) * 100 : 0;
+            const colors = {
+              critical: 'bg-red-500',
+              high: 'bg-orange-500',
+              medium: 'bg-yellow-500',
+              low: 'bg-green-500'
+            };
+            const labels = {
+              critical: 'Nghiêm Trọng',
+              high: 'Cao',
+              medium: 'Trung Bình',
+              low: 'Thấp'
+            };
+            
+            return (
+              <div key={priority} className="flex items-center space-x-3">
+                <div className="w-16 text-sm font-medium text-slate-600">
+                  {labels[priority as keyof typeof labels]}
+                </div>
+                <div className="flex-1 bg-slate-100 rounded-full h-6 relative overflow-hidden">
+                  <div
+                    className={`h-full ${colors[priority as keyof typeof colors]} transition-all duration-500`}
+                    style={{ width: `${percentage}%` }}
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-slate-700">
+                    {count}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
-  const [filters, setFilters] = useState<FilterSearch>({ project: "", status: "" });
+  const TopDevelopers = () => {
+    const sortedDevs = [...developers].sort((a, b) => b.totalResolved - a.totalResolved).slice(0, 5);
+    
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Top Dev Xử Lý Nhiều Nhất</h3>
+        <div className="space-y-3">
+          {sortedDevs.map((dev, index) => (
+            <div key={dev.id} className="flex items-center space-x-4 p-3 bg-slate-50 rounded-lg">
+              <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
+                {index + 1}
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-slate-900">{dev.name}</p>
+                <p className="text-sm text-slate-600">{dev.activeIncidents} đang xử lý • {dev.totalResolved} đã xử lý</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
-  const { data: kpis, loading: kpiLoading, refetch: refetchKPIs } = useApi(() =>
-      api.getDashboardKPIs(filters.project, filters.status)
-  );
+  const OverdueAlert = () => {
+    const overdueList = incidents.filter(i => new Date(i.dueDate) < new Date() && i.status !== 'resolved');
+    
+    if (overdueList.length === 0) return null;
 
-  const handleSearch = () => {
-    refetchKPIs();
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <AlertCircle className="w-6 h-6 text-red-600" />
+          <h3 className="text-lg font-semibold text-red-900">Cảnh Báo: Sự Cố Quá Hạn</h3>
+        </div>
+        <div className="space-y-2">
+          {overdueList.slice(0, 3).map(incident => (
+            <div key={incident.id} className="flex items-center space-x-3 p-3 bg-white rounded-lg">
+              <span className="text-sm font-mono text-slate-600">{incident.incidentId}</span>
+              <span className="flex-1 text-sm text-slate-900">{incident.title}</span>
+              <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded-full">
+                Quá hạn {Math.ceil((new Date().getTime() - new Date(incident.dueDate).getTime()) / (1000 * 60 * 60 * 24))} ngày
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <QuickFilters
-          filters={filters}
-          setFilters={setFilters}
-          onSearch={handleSearch}
-      />
-      
-      {/* KPI Cards */}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-slate-900">Dashboard Tổng Quan</h2>
+        <div className="text-sm text-slate-600">
+          Cập nhật lúc: {new Date().toLocaleString('vi-VN')}
+        </div>
+      </div>
+
+      <OverdueAlert />
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard
-          title="Total Tasks"
-          value={kpis?.totalTasks || 0}
-          change="+12%"
-          trend="up"
-          icon={<Target className="w-6 h-6" />}
-          color="blue"
-          loading={kpiLoading}
+        <StatusCard
+          title="Tổng Sự Cố"
+          value={totalIncidents}
+          icon={AlertTriangle}
+          color="text-blue-600"
+          bgColor="bg-blue-100"
         />
-        <KPICard
-          title="On-time Delivery"
-          value={kpis ? `${kpis.onTimeRate}%` : '0%'}
-          change="+3.2%"
-          trend="up"
-          icon={<Clock className="w-6 h-6" />}
-          color="green"
-          loading={kpiLoading}
+        <StatusCard
+          title="Đang Xử Lý"
+          value={inProgressIncidents}
+          icon={Clock}
+          color="text-orange-600"
+          bgColor="bg-orange-100"
         />
-        <KPICard
-          title="Overdue Tasks"
-          value={kpis?.overdueTasks || 0}
-          change="-8%"
-          trend="down"
-          icon={<AlertTriangle className="w-6 h-6" />}
-          color="red"
-          loading={kpiLoading}
+        <StatusCard
+          title="Đã Xử Lý"
+          value={resolvedIncidents}
+          icon={CheckCircle}
+          color="text-green-600"
+          bgColor="bg-green-100"
         />
-        <KPICard
-          title="Overloaded Devs"
-          value={kpis?.overloadedDevs || 0}
-          change="±0%"
-          trend="neutral"
-          icon={<Users className="w-6 h-6" />}
-          color="orange"
-          loading={kpiLoading}
+        <StatusCard
+          title="Quá Hạn"
+          value={overdueIncidents}
+          icon={AlertCircle}
+          color="text-red-600"
+          bgColor="bg-red-100"
         />
       </div>
 
-      {/* Charts and Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <WorkloadChart />
-        </div>
-        <div className="lg:col-span-1">
-          <ProjectProgress />
-        </div>
-        <div className="lg:col-span-1">
-          <UpcomingDeadlines />
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <PriorityChart />
+        <TopDevelopers />
       </div>
 
-      {/* AI Insights */}
-      <AIInsights />
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Phân Bổ Theo Dev</h3>
+        <div className="space-y-3">
+          {developers.map(dev => {
+            const maxIncidents = Math.max(...developers.map(d => d.activeIncidents || 0));
+            const percentage = maxIncidents > 0 ? (dev.activeIncidents / maxIncidents) * 100 : 0;
+            
+            return (
+              <div key={dev.id} className="flex items-center space-x-4">
+                <div className="w-32 text-sm font-medium text-slate-700 truncate">
+                  {dev.name}
+                </div>
+                <div className="flex-1 bg-slate-100 rounded-full h-6 relative overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500"
+                    style={{ width: `${percentage}%` }}
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-slate-700">
+                    {dev.activeIncidents || 0} sự cố
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default Dashboard;

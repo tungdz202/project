@@ -1,45 +1,34 @@
 import React, { useState } from 'react';
-import { useEffect } from 'react';
-import { Layout } from './components/Layout';
-import { Dashboard } from './components/Dashboard';
-import { DeveloperList } from './components/DeveloperList';
-import { ProjectList } from './components/ProjectList';
-import { TaskManagement } from './components/TaskManagement';
+import Sidebar from './components/Sidebar';
+import Dashboard from './components/Dashboard';
+import IncidentManagement from './components/IncidentManagement';
+import DocumentManagement from './components/DocumentManagement';
 
 function App() {
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Listen for navigation events
-  useEffect(() => {
-    const handleNavigateToTasks = () => {
-      setCurrentView('tasks');
-    };
-
-    window.addEventListener('navigateToTasks', handleNavigateToTasks);
-    return () => {
-      window.removeEventListener('navigateToTasks', handleNavigateToTasks);
-    };
-  }, []);
-
-  const renderCurrentView = () => {
-    switch (currentView) {
+  const renderContent = () => {
+    switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
-      case 'developers':
-        return <DeveloperList />;
-      case 'projects':
-        return <ProjectList />;
-      case 'tasks':
-        return <TaskManagement />;
+      case 'incidents':
+        return <IncidentManagement />;
+      case 'documents':
+        return <DocumentManagement />;
       default:
         return <Dashboard />;
     }
   };
 
   return (
-      <Layout currentView={currentView} onViewChange={setCurrentView}>
-        {renderCurrentView()}
-      </Layout>
+    <div className="min-h-screen bg-slate-50">
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <main className="ml-64 min-h-screen">
+        <div className="p-8">
+          {renderContent()}
+        </div>
+      </main>
+    </div>
   );
 }
 
