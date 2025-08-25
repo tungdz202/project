@@ -3,7 +3,11 @@ import { Plus, Search, Filter, Eye, Edit, Trash2, AlertTriangle, Clock, CheckCir
 import { AIAdvice } from '../types/types';
 import { incidentAPI, developerAPI, documentAPI } from '../services/api';
 
-const IncidentManagement: React.FC = () => {
+interface IncidentManagementProps {
+  onNavigateToDocument?: (documentId: string) => void;
+}
+
+const IncidentManagement: React.FC<IncidentManagementProps> = ({ onNavigateToDocument }) => {
   const [incidents, setIncidents] = useState<any[]>([]);
   const [developers, setDevelopers] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
@@ -38,7 +42,7 @@ const IncidentManagement: React.FC = () => {
         developerAPI.getAll(),
         documentAPI.getAll()
       ]);
-      
+
       setIncidents(incidentsData);
       setDevelopers(developersData);
       setDocuments(documentsData);
@@ -97,7 +101,7 @@ const IncidentManagement: React.FC = () => {
                          incident.incidentId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || incident.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || incident.priority === priorityFilter;
-    
+
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
@@ -107,7 +111,7 @@ const IncidentManagement: React.FC = () => {
         ...formData,
         status: 'new'
       };
-      
+
       await incidentAPI.create(newIncident);
       await fetchData(); // Refresh data
       setFormData({ title: '', description: '', priority: 'medium', errorType: '', assignedDev: '' });
@@ -119,7 +123,7 @@ const IncidentManagement: React.FC = () => {
 
   const handleEdit = async () => {
     if (!selectedIncident) return;
-    
+
     try {
       await incidentAPI.update(selectedIncident.id, formData);
       await fetchData(); // Refresh data
@@ -173,7 +177,7 @@ const IncidentManagement: React.FC = () => {
       updatedAt: new Date().toISOString(),
       dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
     };
-    
+
     setIncidents([...incidents, newIncident]);
     setFormData({ title: '', description: '', priority: 'medium', errorType: '', assignedDev: '' });
     setShowCreateForm(false);
@@ -181,13 +185,13 @@ const IncidentManagement: React.FC = () => {
 
   const handleEditOld = () => {
     if (!selectedIncident) return;
-    
+
     const updatedIncidents = incidents.map(inc =>
       inc.incidentId === selectedIncident.incidentId
         ? { ...selectedIncident, ...formData, updatedAt: new Date().toISOString() }
         : inc
     );
-    
+
     setIncidents(updatedIncidents);
     setShowEditForm(false);
     setSelectedIncident(null);
@@ -199,7 +203,7 @@ const IncidentManagement: React.FC = () => {
         <h3 className="text-2xl font-bold text-slate-900 mb-6">
           {isEdit ? 'Chỉnh Sửa Sự Cố' : 'Tạo Sự Cố Mới'}
         </h3>
-        
+
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Tiêu Đề</label>
@@ -211,7 +215,7 @@ const IncidentManagement: React.FC = () => {
               placeholder="Nhập tiêu đề sự cố..."
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Mô Tả Chi Tiết</label>
             <textarea
@@ -222,7 +226,7 @@ const IncidentManagement: React.FC = () => {
               placeholder="Mô tả chi tiết về sự cố..."
             />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Mức Độ Ưu Tiên</label>
@@ -237,7 +241,7 @@ const IncidentManagement: React.FC = () => {
                 <option value="critical">Nghiêm Trọng</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Loại Lỗi</label>
               <select
@@ -254,7 +258,7 @@ const IncidentManagement: React.FC = () => {
               </select>
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Dev Phụ Trách</label>
             <select
@@ -269,7 +273,7 @@ const IncidentManagement: React.FC = () => {
             </select>
           </div>
         </div>
-        
+
         <div className="flex justify-end space-x-4 mt-8">
           <button
             onClick={() => {
@@ -294,10 +298,10 @@ const IncidentManagement: React.FC = () => {
 
   const DetailModal = () => {
     if (!selectedIncident) return null;
-    
+
     const StatusIcon = statusIcons[selectedIncident.status];
     const assignedDev = selectedIncident.assignedDevInfo;
-    
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -321,14 +325,14 @@ const IncidentManagement: React.FC = () => {
               <XCircle className="w-6 h-6" />
             </button>
           </div>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
               <div>
                 <h4 className="text-lg font-semibold text-slate-900 mb-3">Mô Tả Chi Tiết</h4>
                 <p className="text-slate-600 leading-relaxed">{selectedIncident.description}</p>
               </div>
-              
+
               <div>
                 <h4 className="text-lg font-semibold text-slate-900 mb-3">Thông Tin Kỹ Thuật</h4>
                 <div className="bg-slate-50 rounded-xl p-4 space-y-3">
@@ -351,7 +355,7 @@ const IncidentManagement: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-6">
               <div>
                 <h4 className="text-lg font-semibold text-slate-900 mb-3">Dev Phụ Trách</h4>
@@ -365,7 +369,7 @@ const IncidentManagement: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div>
                 <button
                   onClick={() => handleGetAiAdvice(selectedIncident)}
@@ -384,7 +388,7 @@ const IncidentManagement: React.FC = () => {
 
   const AiAdviceModal = () => {
     if (!aiAdvice || !selectedIncident) return null;
-    
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
@@ -397,7 +401,7 @@ const IncidentManagement: React.FC = () => {
               <p className="text-slate-600">Cho sự cố: {selectedIncident.title}</p>
             </div>
           </div>
-          
+
           <div className="space-y-6">
             <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
@@ -408,7 +412,7 @@ const IncidentManagement: React.FC = () => {
               </div>
               <p className="text-slate-700 leading-relaxed">{aiAdvice.suggestion}</p>
             </div>
-            
+
             {aiAdvice.relatedDocs.length > 0 && (
               <div>
                 <h4 className="font-semibold text-slate-900 mb-4">Tài Liệu Liên Quan</h4>
@@ -416,13 +420,27 @@ const IncidentManagement: React.FC = () => {
                   {aiAdvice.relatedDocs.map(docId => {
                     const doc = documents.find(d => d.documentId === docId);
                     return doc ? (
-                      <div key={doc.documentId} className="flex items-center space-x-3 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                      <div
+                        key={doc.documentId}
+                        className="flex items-center space-x-3 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                        onClick={() => {
+                          console.log('Clicked on document:', doc.documentId); // Debug log
+                          if (onNavigateToDocument) {
+                            console.log('Calling onNavigateToDocument'); // Debug log
+                            onNavigateToDocument(doc.documentId);
+                          } else {
+                            console.log('onNavigateToDocument is not available'); // Debug log
+                          }
+                          setShowAiAdvice(false);
+                        }}
+                      >
                         <div className="p-2 bg-blue-100 rounded-lg">
                           <div className="w-5 h-5 text-blue-600">📄</div>
                         </div>
                         <div>
                           <p className="font-medium text-slate-900">{doc.title}</p>
                           <p className="text-sm text-slate-600">Loại: {doc.errorType}</p>
+                          <p className="text-xs text-blue-600 mt-1">Click để xem chi tiết →</p>
                         </div>
                       </div>
                     ) : null;

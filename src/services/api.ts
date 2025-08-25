@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:8080/api';
+// const API_BASE_URL = 'https://hackathon-u4gi.onrender.com/api/developers';
+const API_BASE_URL = 'https://selected-duck-ethical.ngrok-free.app/api';
 
 // Generic API function
 async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -6,6 +7,7 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
   const config: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
       ...options.headers,
     },
     ...options,
