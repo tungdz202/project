@@ -115,27 +115,6 @@ export const LoginPage: React.FC = () => {
                 )}
               </button>
             </form>
-
-            {/* Demo Credentials */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-              <p className="text-sm text-gray-600 font-medium mb-2">Tài khoản demo:</p>
-              <div className="text-xs text-gray-500 space-y-1">
-                <div className="grid grid-cols-1 gap-2">
-                  <div className="flex justify-between">
-                    <span><strong>Admin:</strong></span>
-                    <span>admin / password123</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span><strong>HR User:</strong></span>
-                    <span>user1 / password123</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span><strong>IT User:</strong></span>
-                    <span>user2 / password123</span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Footer */}

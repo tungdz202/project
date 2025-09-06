@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Bell, LogOut, User } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -8,6 +9,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleSearch = (e: React.FormEvent) => {
@@ -15,6 +17,10 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
     onSearch(searchQuery);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="px-6 py-4">
@@ -57,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch }) => {
                 <p className="text-xs text-gray-500">{user?.group}</p>
               </div>
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 title="Đăng xuất"
               >
